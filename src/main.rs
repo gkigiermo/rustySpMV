@@ -17,6 +17,10 @@ struct Arguments {
     #[clap(forbid_empty_values = true)]
     /// Matrix file in CSR format
     matrix_file: String,
+    #[clap(short, long)]
+    #[clap(forbid_empty_values = true)]
+    /// Number of times the test is repeated to obtain the average time
+    repetitions: usize,
 }
 
 struct SparseMatrix{
@@ -147,8 +151,10 @@ fn main() {
     fill_vector(&mut x_vector);
 
     //Perform the sparse matrix vector multiplication
-    sp_matrix.calculate_spmv(&x_vector, &mut y_vector);
-
+    for _repetition in 0..args.repetitions {
+        sp_matrix.calculate_spmv(&x_vector, &mut y_vector);
+    }
+    
     //Print the first element of each vector
     println!("x: {} y: {} ", x_vector[0], y_vector[0] );
 
