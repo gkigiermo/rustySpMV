@@ -2,6 +2,7 @@ use clap::Parser;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::BufRead;
+use std::time::Instant;
 
 #[derive(Parser,Default,Debug)]
 #[clap(author="Guillermo Oyarzun", version, about)]
@@ -150,16 +151,21 @@ fn main() {
     //Fill multiplying vector with values
     fill_vector(&mut x_vector);
 
+    //Variable to measure time
+    let timer= Instant::now();
+
     //Perform the sparse matrix vector multiplication
     for _repetition in 0..args.repetitions {
         sp_matrix.calculate_spmv(&x_vector, &mut y_vector);
     }
+    //Calculate the average time elapsed
+    let time_elapsed = timer.elapsed()/args.repetitions.try_into().unwrap();
     
+    //Print the measument
+    println!("Elapsed time: {:.2?}", time_elapsed );
+
     //Print the first element of each vector
     println!("x: {} y: {} ", x_vector[0], y_vector[0] );
 
     
-
-    //measure times 
-
 }
