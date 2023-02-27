@@ -65,14 +65,17 @@ impl SparseMatrix{
         Ok(())
     }
 
+    //The size of the rows
     pub fn get_rows_number(&mut self) -> usize {
         self.matrix_params[2]
     }
 
+    //The size of the columns
     pub fn get_columns_number(&mut self) -> usize {
         self.matrix_params[1]
     }
 
+    // Just for checking the read values
     pub fn print_first_n_lines(&mut self, n: usize) -> Result<(), Box<dyn std::error::Error>>{
         for i in 0..self.matrix_params.len(){
             println!(" {}", self.matrix_params[i]);
@@ -82,16 +85,38 @@ impl SparseMatrix{
             println!("col[{}]: {}", i, self.cols[i] );
             println!("row_ptr[{}]:{}", i, self.row_ptr[i] );
         }
+        //Row pointer must have an extra entry
+        println!(" Read row size from params : {}, obtain from row_ptr vector {} ", self.matrix_params[2], self.row_ptr.len());
 
         Ok(())
     }
-}
 
-pub fn fill_vector(_vector : &mut Vec<f64>) {
-    for index in 0.._vector.len() {
-        _vector[index] = 0.1;
+    //Calculates _vector_y = self * _vector_x
+    pub fn calculate_spmv(&mut self, _vector_x: &Vec<f64>,  _vector_y: &mut Vec<f64> ) {
+        //For each row in the matrix
+        for row in 0..self.get_rows_number(){
+            //Read the begin and end within the vals and cols arrays
+            let row_begin = self.row_ptr[row];
+            let row_end = self.row_ptr[row + 1];
+            let mut sum : f64 = 0.0;
+            //For each non-zero element of the row calculate the inner product
+            for col in row_begin..row_end{
+                sum += self.vals[col] * _vector_x[self.cols[col]];
+            }
+            _vector_y[row] = sum;
+        }
+
     }
 }
+
+//A simple function to fill the vector with some numbers
+pub fn fill_vector(_vector : &mut Vec<f64>) {
+    for index in 0.._vector.len() {
+        _vector[index] = 0.1 * (index as f64);
+    }
+}
+
+
 
 fn main() {
     //Read the arguments given in the console
@@ -116,13 +141,17 @@ fn main() {
     let mut x_vector: Vec<f64> = vec![0.0 ; sp_matrix.get_columns_number()];
     
     //Create resulting vector
-    let y_vector: Vec<f64> = vec![0.0 ; sp_matrix.get_rows_number()];
+    let mut y_vector: Vec<f64> = vec![0.0 ; sp_matrix.get_rows_number()];
     
+    //Fill multiplying vector with values
     fill_vector(&mut x_vector);
 
+    //Perform the sparse matrix vector multiplication
+    sp_matrix.calculate_spmv(&x_vector, &mut y_vector);
+
+    //Print the first element of each vector
     println!("x: {} y: {} ", x_vector[0], y_vector[0] );
 
-    //create the spmv kernel
     
 
     //measure times 
