@@ -2,6 +2,7 @@ use clap::Parser;
 use std::fs::File;
 use std::io::BufReader;
 use std::io::BufRead;
+use std::time::Instant;
 
 #[derive(Parser,Default,Debug)]
 #[clap(author="Guillermo Oyarzun", version, about)]
@@ -17,6 +18,10 @@ struct Arguments {
     #[clap(forbid_empty_values = true)]
     /// Matrix file in CSR format
     matrix_file: String,
+    #[clap(short, long)]
+    #[clap(forbid_empty_values = true)]
+    /// Number of times the test is repeated to obtain the average time
+    repetitions: usize,
 }
 
 struct SparseMatrix{
@@ -77,18 +82,23 @@ impl SparseMatrix{
 
     // Just for checking the read values
     pub fn print_first_n_lines(&mut self, n: usize) -> Result<(), Box<dyn std::error::Error>>{
-        for i in 0..self.matrix_params.len(){
-            println!(" {}", self.matrix_params[i]);
-        }
+        println!("\nPrinting first {} element(s) of the matrix arrays", n);
         for i in 0..n {
             println!("val[{}]: {}", i,  self.vals[i] );
             println!("col[{}]: {}", i, self.cols[i] );
             println!("row_ptr[{}]:{}", i, self.row_ptr[i] );
         }
         //Row pointer must have an extra entry
-        println!(" Read row size from params : {}, obtain from row_ptr vector {} ", self.matrix_params[2], self.row_ptr.len());
+        println!("Read row size from params : {}, obtain from row_ptr vector {}", self.matrix_params[2], self.row_ptr.len());
 
         Ok(())
+    }
+
+    pub fn print_matrix_info(&self) {
+        println!("\nMatrix data");
+        println!("Number of rows: {}", self.matrix_params[2]);
+        println!("Number of cols: {}", self.matrix_params[1]);
+        println!("Total non-zero elements: {}\n", self.matrix_params[0]);
     }
 
     //Calculates _vector_y = self * _vector_x
@@ -136,7 +146,8 @@ fn main() {
         Ok(()) => {},
         Err(e) => println!("Error: {}", e ),  
     }
-    
+    //Matrix info
+    sp_matrix.print_matrix_info();
     //Create multiplying vector
     let mut x_vector: Vec<f64> = vec![0.0 ; sp_matrix.get_columns_number()];
     
@@ -146,14 +157,21 @@ fn main() {
     //Fill multiplying vector with values
     fill_vector(&mut x_vector);
 
+    //Variable to measure time
+    let timer= Instant::now();
+
     //Perform the sparse matrix vector multiplication
-    sp_matrix.calculate_spmv(&x_vector, &mut y_vector);
+    for _repetition in 0..args.repetitions {
+        sp_matrix.calculate_spmv(&x_vector, &mut y_vector);
+    }
+    //Calculate the average time elapsed
+    let time_elapsed = timer.elapsed()/args.repetitions.try_into().unwrap();
+    
+    //Print the measument
+    println!("Elapsed time: {:.2?}", time_elapsed );
 
     //Print the first element of each vector
     println!("x: {} y: {} ", x_vector[0], y_vector[0] );
 
     
-
-    //measure times 
-
 }
