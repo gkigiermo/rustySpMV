@@ -82,18 +82,23 @@ impl SparseMatrix{
 
     // Just for checking the read values
     pub fn print_first_n_lines(&mut self, n: usize) -> Result<(), Box<dyn std::error::Error>>{
-        for i in 0..self.matrix_params.len(){
-            println!(" {}", self.matrix_params[i]);
-        }
+        println!("\nPrinting first {} element(s) of the matrix arrays", n);
         for i in 0..n {
             println!("val[{}]: {}", i,  self.vals[i] );
             println!("col[{}]: {}", i, self.cols[i] );
             println!("row_ptr[{}]:{}", i, self.row_ptr[i] );
         }
         //Row pointer must have an extra entry
-        println!(" Read row size from params : {}, obtain from row_ptr vector {} ", self.matrix_params[2], self.row_ptr.len());
+        println!("Read row size from params : {}, obtain from row_ptr vector {}", self.matrix_params[2], self.row_ptr.len());
 
         Ok(())
+    }
+
+    pub fn print_matrix_info(&self) {
+        println!("\nMatrix data");
+        println!("Number of rows: {}", self.matrix_params[2]);
+        println!("Number of cols: {}", self.matrix_params[1]);
+        println!("Total non-zero elements: {}\n", self.matrix_params[0]);
     }
 
     //Calculates _vector_y = self * _vector_x
@@ -141,7 +146,8 @@ fn main() {
         Ok(()) => {},
         Err(e) => println!("Error: {}", e ),  
     }
-    
+    //Matrix info
+    sp_matrix.print_matrix_info();
     //Create multiplying vector
     let mut x_vector: Vec<f64> = vec![0.0 ; sp_matrix.get_columns_number()];
     
