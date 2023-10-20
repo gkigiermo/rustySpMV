@@ -169,9 +169,5 @@ fn main() {
     
     //Print the measument
     println!("Elapsed time: {:.2?}", time_elapsed );
-
-    //Print the first element of each vector
-    println!("x: {} y: {} ", x_vector[0], y_vector[0] );
-
     
 }
